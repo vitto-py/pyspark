@@ -1,0 +1,69 @@
+#+title: 01 Tut
+* PySpark: An Introduction
+In this PySpark tutorial, you’ll learn the fundamentals of Spark, how to create distributed data processing pipelines, and leverage its versatile libraries to transform and analyze large datasets efficiently with examples.
+Using PySpark we can run applications parallelly on the distributed cluster (multiple nodes).
+** What is Spark?
+it is an engine used for large-scale processing by doing in Memory Processing. Spark reuses data by using an in-memory cache to speed up machine learning algorithms that repeatedly call a function on the same dataset.  This lowers the latency making Spark multiple times faster than MapReduce, especially when doing machine learning, and interactive analytics.  Apache Spark can also process real-time streaming.
+
+** PySpark Architecture
+Apache Spark works in a master-slave architecture where the master is called the “Driver” and slaves are called “Workers”. When you run a Spark application, Spark Driver creates a context that is an entry point to your application, and all operations (transformations and actions) are executed on worker nodes, and the resources are managed by Cluster Manager.
+
+** PySpark Modules &
+- PySpark RDD (pyspark.RDD)
+- PySpark DataFrame and SQL (pyspark.sql)
+- PySpark Streaming (pyspark.streaming)
+- PySpark MLib (pyspark.ml, pyspark.mllib)
+- PySpark GraphFrames
+- PySpark Resource (pyspark.resource) It’s new in PySpark 3.0
+** Spark Web UI
+Apache Spark provides a suite of Web UIs (Jobs, Stages, Tasks, Storage, Environment, Executors, and SQL) to monitor the status of your Spark application, resource consumption of the Spark cluster, and Spark configurations.
+http://localhost:4041
+
+* Concepts
+** PySpark RDD – Resilient Distributed Dataset
+PySpark RDD (Resilient Distributed Dataset) is a fundamental data structure of PySpark that is fault-tolerant, immutable distributed collections of objects, which means *once you create an RDD you cannot change it*. Each dataset in RDD is divided into logical partitions, which can be computed on different nodes of the cluster.
+#+begin_src python :session my-spark-session
+import sys
+sys.path.append("/home/zoso/spark-3.4.3-bin-hadoop3/python")
+from pyspark.sql import SparkSession
+
+# Create SparkSession
+spark = SparkSession.builder \
+      .master("local[1]") \
+      .appName("SparkByExamples.com") \
+      .getOrCreate()
+
+#+end_src
+
+#+RESULTS:
+: None
+
+*sys.path.append("/home/zoso/spark-3.4.3-bin-hadoop3/python"):* This line appends a directory to the Python interpreter's search path. It adds the directory "/home/zoso/spark-3.4.3-bin-hadoop3/python" to the list of directories where Python looks for modules to import
+
+#+begin_src python :session my-spark-session
+
+# Create RDD from parallelize
+dataList = [("Java", 20000), ("Python", 100000), ("Scala", 3000)]
+rdd=spark.sparkContext.parallelize(dataList)
+rdd
+#+end_src
+
+#+RESULTS:
+: ParallelCollectionRDD[0] at readRDDFromFile at PythonRDD.scala:287
+
+lets see the inside
+
+#+begin_src  python :session my-spark-session
+# Create a SparkSession
+spark = SparkSession.builder \
+    .appName("PySpark-Get-Started") \
+    .getOrCreate()
+# Test the setup
+data = [("Alice", 25), ("Bob", 30), ("Charlie", 35)]
+df = spark.createDataFrame(data, ["Name", "Age"])
+print(df.show())
+
+#+end_src
+
+#+RESULTS:
+: None
