@@ -61,7 +61,7 @@ spark = SparkSession.builder \
 # Test the setup
 data = [("Alice", 25), ("Bob", 30), ("Charlie", 35)]
 df = spark.createDataFrame(data, ["Name", "Age"])
-print(df.show())
+df.show()
 
 #+end_src
 
