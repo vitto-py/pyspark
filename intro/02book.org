@@ -1,0 +1,59 @@
+#+title: 02book
+
+* Chapter 02: Getting Started
+** Spark Concepts
+key concepts of a Spark application
+#+begin_quote
++ Application
+    A user program built on Spark using its APIs.
++ SparkSession
+    An object that provides a point of entry to interact with underlying Spark functionality and allows programming Spark with its APIs.
++ Job
+    A parallel computation consisting of multiple tasks that gets spawned in response to a Spark action (e.g., save(), collect()).
++ Stage
+    Each job gets divided into smaller sets of tasks called stages that depend on each other.
++ Task
+    A single unit of work or execution that will be sent to a Spark executor.
+#+end_quote
+
+At the core you have the *Spark Driver*, which creates the Spark Session object
+
+Spark components communicate through the Spark driver in Spark’s distributed architecture
+1. Spark Application (which contains)
+2. Spark Driver (which contains)
+3. Spark Session
+
+The *spark driver* converts your spark app into one or more *Spark Jobs*, each job contains one or more *stages*, and each stage is comprised of multiple *tasks*. The power comes here, each task is mapped to a single core and works over a single partition of data. you see? multiple cores, parallel execution
+
+#+begin_src python :session my-spark
+import sys
+sys.path.append("/home/zoso/spark-3.4.3-bin-hadoop3/python")
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import count
+
+spark = SparkSession.builder.appName("ch01").getOrCreate()
+path = "/home/zoso/pyspark/intro/learning-spark-v2/mnm_dataset.csv"
+
+
+#+end_src
+
+#+RESULTS:
+: None
+
+#+begin_src python :session my-spark
+mnm_df = (spark.read.format("csv").option("header", "true").option("inferSchema", "true").load(path))
+
+mnm_df.take(10)
+#+end_src
+
+#+RESULTS:
+| Row | (State= TX Color= Red Count=20) | Row | (State= NV Color= Blue Count=66) | Row | (State= CO Color= Blue Count=79) | Row | (State= OR Color= Blue Count=71) | Row | (State= WA Color= Yellow Count=93) | Row | (State= WY Color= Blue Count=16) | Row | (State= CA Color= Yellow Count=53) | Row | (State= WA Color= Green Count=60) | Row | (State= OR Color= Green Count=71) | Row | (State= TX Color= Green Count=68) |
+
+#+begin_src python :session my-spark
+mnm_df.printSchema()
+
+mnm_df.show(10)
+#+end_src
+
+#+RESULTS:
+: None
