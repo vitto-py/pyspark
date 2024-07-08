@@ -5,8 +5,6 @@ import org.apache.spark.sql.functions._
 
 import org.apache.spark.sql.streaming.GroupState
 import org.apache.spark.sql.streaming.{GroupStateTimeout, OutputMode}
-import org.apache.log4j.{Level, Logger}
-
 
 
 
@@ -18,9 +16,6 @@ case class RackInfo(rack:String, temperature:Double, ts:java.sql.Timestamp)
 case class RackState(var rackId:String, var highTempCount:Int,
                      var status:String,
                      var lastTS:java.sql.Timestamp)
-
-
-
 
 object Main {
   /*2 Conditions
@@ -82,8 +77,6 @@ object Main {
 
   def main(args: Array[String]): Unit = {
 
-    // Set logging level to ERROR
-    Logger.getRootLogger.setLevel(Level.WARN)
 
     //println("Hello world!")
     val spark = SparkSession.builder()
@@ -91,7 +84,10 @@ object Main {
       .master("local")
       .getOrCreate()
 
-    //WEIRD SCALA - From here come the encoders
+    // NO MORE INFO MESSAGES
+    spark.sparkContext.setLogLevel("ERROR")
+
+    // WEIRD SCALA - From here come the encoders, if you don't put it, the compiler complains
     import spark.implicits._
 
     // schema for the IoT data
@@ -100,20 +96,31 @@ object Main {
       .add("temperature", DoubleType, false)
       .add("ts", TimestampType, false)
 
-    // seems that IntellJ directories start on the main dir
+    /* ------------- NORMAL DF -------------
+    seems that IntellJ directories start on the main dir
     val df = spark.read.schema(iotDataSchema).json("data/file1.json")
-    df.show()
+    df.show()*/
+
     // ---- STREAMING ---------
     /* For this section a new folder called dataStraaming was created,
     you must copy and paste file1.json, file2.json, .... one at the time
     in order to simulate streaming
-
     */
+
+    // StreamDataFrame (starts empty, but gets updated constantly
     val iotSSDF = spark.readStream.schema(iotDataSchema).json("dataStreaming/")
 
-    val iotPatternDF = iotSSDF.as[RackInfo]
-      .groupByKey(_.rack)
+    // PerformAction
+    /*
+    ----------- mapGroupsWithState -----------
+    dataset
+      .groupByKey(...)
+      .mapGroupsWithState(GroupStateTimeout.ProcessingTimeTimeout)(mappingFunction)
+     */
+    val iotPatternDF = iotSSDF.as[RackInfo] // converts the DataFrame into a Dataset of RackInfo objects
+      .groupByKey(_.rack) // groups the RackInfo objects by their rack field, effectively organizing the data based on different racks.
       .mapGroupsWithState[RackState,RackState](GroupStateTimeout.NoTimeout)(updateAcrossAllRackStatus)
+    // [RackState,RackState] Type Parameters: (state,output) in this case, same type
 
     // setup the output and start the streaming query
     val iotPatternSQ = iotPatternDF.writeStream.format("console").outputMode("update").start()
